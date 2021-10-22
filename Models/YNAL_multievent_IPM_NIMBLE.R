@@ -15,10 +15,15 @@
 # (2) block samplers for parameters to make it more efficient
 # (3) experiment with customised distributions for multistate from workshop
 
+## AEB started working on this October 2021
+
 # Load necessary libraries
-#library(jagsUI)
+library(tidyverse)
+library(data.table)
+library(nimble)
+library(here)
+library(coda)
 library(devtools)
-#install_github("nimble-dev/nimble", ref = "devel", subdir = "packages/nimble")   ### Perry thinks this is better, but may not be necessary for us?
 library(nimble)
 library(mcmcplots)
 library(coda)
@@ -30,10 +35,42 @@ library(coda)
 #
 ##############################################################
 
+# TODO 
+# need to get to the bottom of the issues with the data with Steffen
+# why does he not think that multievent model is reasonable
+# are these data correct???
+
+# CMR data
+# TODO
+# this one is probably not correct because we don't want a simple encounter history...no?
+AYNA <- read_csv(here("Data", "AYNA_simple_encounter_history_1982_2018.csv"))
+names(AYNA)
+CH<-as.matrix(AYNA[,3:39], dimnames=F)
+AYNA$AGE[is.na(AYNA$AGE)]<-1  ## set all NA as 'adult'
+apply(CH,2,sum) ### check that there are contacts in every season
+
+# COUNT DATA FOR POPULATION TREND 
+AYNA.pop <- read_csv(here("Data", "AYNA_pop_counts_1982_2018.csv"))
+# TODO
+# why subset the counts in this way
+AYNA.pop<-subset(AYNA.pop,Year>1999)	## reduce data set to remove NA in 4 years
+n.years<-dim(AYNA.pop)[1]		## defines the number of years
+n.sites<-dim(AYNA.pop)[2]-1 ## defines the number of study areas
+str(AYNA.pop)
+names(AYNA.pop)
+
+# BREEDING SUCCESS DATA FOR FECUNDITY 
+AYNA.bs <- read_csv(here("Data", "AYNA_breed_success_1982_2017.csv"))
+AYNA.bs<-subset(AYNA.bs,Year>1999)	## reduce data set to specified time period
+# TODO
+# this is not the data we want
+J<-as.integer(AYNA.bs$n_nests*AYNA.bs$BREED_SUCC)
+R<-AYNA.bs$n_nests
+
 #read in COUNT DATA 
-setwd("C:\\Users\\sconverse\\Documents\\Albatross\\Peter Ryan-YNAL\\Analysis\\IPM")
-setwd("S:\\ConSci\\DptShare\\steffenoppel\\RSPB\\UKOT\\Gough\\DATA\\AYNA_count_data")
-setwd("C:\\STEFFEN\\RSPB\\UKOT\\Gough\\DATA\\AYNA_count_data")
+# setwd("C:\\Users\\sconverse\\Documents\\Albatross\\Peter Ryan-YNAL\\Analysis\\IPM")
+# setwd("S:\\ConSci\\DptShare\\steffenoppel\\RSPB\\UKOT\\Gough\\DATA\\AYNA_count_data")
+# setwd("C:\\STEFFEN\\RSPB\\UKOT\\Gough\\DATA\\AYNA_count_data")
 
 #Number of breeding pairs and chicks fledged from census data
 ############################################################################# missing counts in 2015 

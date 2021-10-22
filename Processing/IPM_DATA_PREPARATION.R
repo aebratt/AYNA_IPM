@@ -12,15 +12,11 @@ library(data.table)
 filter<-dplyr::filter
 select<-dplyr::select
 
-
 #############################################################################
 ##   1. SPECIFY THE SPECIES AND START YEAR FOR WHICH YOU WANT A SUMMARY ####
 #############################################################################
 SP<-"AYNA"
 start<-1981
-
-
-
 
 ###################################################################################
 ##   2. READ IN DATA FROM DATABASES AND FILTER DATA FOR SPECIES OF INTEREST ####
@@ -45,16 +41,10 @@ contacts<-contacts %>% filter(SpeciesCode==SP)
 nests<-nests %>% filter(Species==SP)
 counts<-counts %>% filter(Species==SP)
 
-
 ## look at data
 head(nests)  ## nest monitoring data
 head(counts)  ## seabird count data
 head(backup)
-
-
-
-
-
 
 #############################################################################
 ##   3. PREPARE THE BREEDING SUCCESS DATA FROM NEST RECORDS #################
@@ -65,7 +55,6 @@ exclude <- nests %>% #filter(Year==2010) %>%
   filter(LastStage=="INCU") %>%
   filter(SUCCESS==1)
 
-
 ### summary of breeding success per year from nests
 FECUND<-nests %>% filter(Species==SP) %>% mutate(count=1) %>%
   filter(!NestID %in% exclude$NestID) %>%
@@ -73,7 +62,6 @@ FECUND<-nests %>% filter(Species==SP) %>% mutate(count=1) %>%
   group_by(Year) %>%
   summarise(n_nests=sum(count),BREED_SUCC=mean(SUCCESS, na.rm=T))
 FECUND
-
 
 ### add missing years from backup data (unknown source)
 FEC2<-backup %>% mutate(n_nests=INCU) %>%
@@ -84,12 +72,9 @@ FEC2<-backup %>% mutate(n_nests=INCU) %>%
 FECUND<-rbind(FECUND,FEC2) %>% arrange(Year)
 FECUND
 
-
 ### PLOT TO SPOT ANY OUTLIERS OF BREEDING SUCCESS
 ggplot(FECUND, aes(x=Year,y=BREED_SUCC)) +geom_point(size=2, color='darkred')+geom_smooth(method='lm') 
 fwrite(FECUND,"AYNA_breed_success_1982_2018.csv")
-
-
 
 #############################################################################
 ##   4. PREPARE THE POPULATION COUNT DATA FROM COUNT RECORDS ################
@@ -97,7 +82,6 @@ fwrite(FECUND,"AYNA_breed_success_1982_2018.csv")
 
 ### find years in which no 'INCU' were counted - we need 'AON' for those years
 ### fixed on 24 Dec 2018 in database
-
 
 ### summary of population counts of breeding pairs per year and colony
 POPSIZE<-counts %>% filter(Species==SP) %>%
@@ -114,11 +98,6 @@ POPSIZE<-counts %>% filter(Species==SP) %>%
 POPSIZE[19:37,]
 fwrite(POPSIZE,"AYNA_pop_counts_1982_2018.csv")
 
-
-
-
-
-
 #############################################################################
 ##   5. PREPARE THE MARK-RECAPTURE DATA FOR SURVIVAL ANALYSIS ###############
 #############################################################################
@@ -130,7 +109,6 @@ fwrite(POPSIZE,"AYNA_pop_counts_1982_2018.csv")
 ## given the gross inadequacies of past records it is safer to simply use 0/1 contacts and assume all birds are breeding
 ## created new query called 'metalside' which extracts the recorded side of the body for the metal ring - all birds ringed as chicks should have "L"
 
-
 head(contacts)  ## CMR data
 dim(contacts)
 
@@ -138,7 +116,6 @@ dim(contacts)
 contacts<-contacts %>%
   filter(year(Date_Time)>start) 
 dim(contacts)
-
 
 ### FIND MISSING DATA FOR SEASON AND REPLACE BASED ON DATE
 contacts<-contacts %>%
@@ -149,8 +126,6 @@ contacts<-contacts %>%
   mutate(Contact_Season=if_else(is.na(Contact_Season), if_else(MO>6,Season1,Season2),Contact_Season)) %>%
   select(BirdID,Location,Contact_Season)
 dim(contacts)
-
-
 
 # ### DETERMINE STATE FOR MULTI-STATE MODEL - ABANDONED on 25 Dec 2018 because records were too incomplete
 # ## State 1 = chick
@@ -163,7 +138,6 @@ dim(contacts)
 #   mutate(STATE=if_else(STATE>1 & Breeding_Status %in% c("Unknown","Loafing","Holding","Building","Bird on empty nest"),2,3))
 # head(stateContacts)
 
-
 ### CREATE SIMPLE ENCOUNTER HISTORY (0/1)
 AYNA_EH<-contacts %>% select(BirdID,Contact_Season) %>%
   mutate(count=1) %>%
@@ -171,7 +145,6 @@ AYNA_EH<-contacts %>% select(BirdID,Contact_Season) %>%
   summarise(STATE=max(count)) %>%
   spread(key=Contact_Season, value=STATE, fill=0)
 AYNA_EH
-
 
 ### TRY TO ASSIGN AGE AT FIRST MARK FROM SIDE OF BODY
 head(metalside)
@@ -181,11 +154,9 @@ birdage<-metalside %>% mutate(minage=if_else(Side_Of_Body=="L",0,1)) %>%
   filter(SpeciesCode==SP)
 dim(birdage)
 
-
 ### INSERT AGE INTO ENCOUNTER HISTORY
 AYNA_EH$AGE<-birdage$MinAge[match(AYNA_EH$BirdID,birdage$BirdID)]
 
 ### EXPORT ENCOUNTER HISTORY
 dim(AYNA_EH)
 fwrite(AYNA_EH[,c(1,40,2:38)],"AYNA_simple_encounter_history_1982_2018.csv")
-

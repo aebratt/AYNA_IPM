@@ -1,7 +1,8 @@
 # TODO
-# source files
-
-# invesigate which nodes have posterior predictive samplers
+# reorganize repo
+# figure out data issue
+# adapt model
+# compile todolist throughout these files
 
 library(here)
 library(nimbleEcology)
@@ -13,7 +14,6 @@ YNAL.Consts <- list(z.first=z.first,
                     first=first,
                     nind=nind,
                     nyear=nyear,
-                    age=age,
                     nyear.in=nyear.in,
                     yrs.in=yrs.in,
                     nyear.out=nyear.out,
@@ -28,6 +28,7 @@ zero <- numeric(dim(Y)[1])
 
 # TODO - should these be data or constants
 YNAL.Data <- list(Y=Y,
+                  age=age,
                   zero = zero
                   #z=z.data#, 
                   #nF=nF, 
@@ -101,51 +102,70 @@ conf$printSamplers(type = "posterior") # check sampler defaults
   # R rand[4:14]
 
   ## block all the capture prob variables
-  #conf$removeSamplers('int.p')
-  #conf$removeSamplers('sigma.p')
-  conf$removeSamplers('p.link')
-for(link in 1:10){
-    conf$addSampler(target = paste0("p.link[",link,", 1:",(nyear-1),"]"), type="RW_block", 
-                     control=list(adaptInterval = 100), silent=TRUE )
-}#s
-  conf$printSamplers("p.link")
-  
-  ## block all the survival variables
-  #conf$removeSamplers('int.s')
-  #conf$removeSamplers('sigma.S')
-  conf$removeSamplers('S.rand')
-  for(s in 1:2){
-    conf$addSampler(target = paste0("S.rand[",s,", 1:",(nyear-1),"]"), type="RW_block", 
-                    control=list(adaptInterval = 100), silent=TRUE )
-  }#s
-  conf$printSamplers("S.rand")
-  
-  ## block all the fecundity variables  
-  #conf$removeSamplers('int.F')
-  #conf$removeSamplers('sigma.F')
-  conf$removeSamplers('F.rand')
-  conf$addSampler(target = paste0("F.rand[1:",(nyear-1),"]"), type="RW_block", 
-                  control=list(adaptInterval = 100), silent=TRUE )
-  conf$printSamplers("F.rand")
-
-  ## block all the breeding variables  
-  #conf$removeSamplers('int.B')
-  #conf$removeSamplers('sigma.B')
-  conf$removeSamplers('B.rand')
-  for(b in 1:2){
-    conf$addSampler(target = paste0("B.rand[",b,", 1:",(nyear-1),"]"), type="RW_block", 
-                    control=list(adaptInterval = 100), silent=TRUE )
-  }#s
-  conf$printSamplers("B.rand")
-  
-  ## block all the recruiting variables  
-  #conf$removeSamplers('int.R')
-  #conf$removeSamplers('sigma.R')
-  
-  conf$removeSamplers('R.rand')
-  conf$addSampler(target = "R.rand[4:14]", type="RW_block", 
-                    control=list(adaptInterval = 100), silent=TRUE )
-  conf$printSamplers("R.rand")
+#   conf$removeSamplers('int.p')
+#   conf$addSampler(target = "int.p[1:10]", type="RW_block")
+#   conf$printSamplers("int.p")
+# 
+#   conf$removeSamplers('sigma.p')
+#   conf$addSampler(target = "sigma.p[1:10]", type="RW_block")
+#   conf$printSamplers("sigma.p")
+#   
+#   conf$removeSamplers('p.link')
+# for(link in 1:10){
+#     conf$addSampler(target = paste0("p.link[",link,", 1:",(nyear-1),"]"), type="RW_block")
+# }#s
+#   conf$printSamplers("p.link")
+#   
+#   ## block all the survival variables
+#   #conf$removeSamplers('int.s')
+#   #conf$removeSamplers('sigma.S')
+#   
+#   conf$removeSamplers('int.S')
+#   conf$addSampler(target = "int.S[1:2]", type="RW_block")
+#   conf$printSamplers("int.S")
+#   
+#   conf$removeSamplers('sigma.S')
+#   conf$addSampler(target = "sigma.S[1:2]", type="RW_block")
+#   conf$printSamplers("sigma.S")
+#   
+#   conf$removeSamplers('S.rand')
+#   for(s in 1:2){
+#     conf$addSampler(target = paste0("S.rand[",s,", 1:",(nyear-1),"]"), type="RW_block")
+#   }#s
+#   conf$printSamplers("S.rand")
+#   
+#   ## block all the fecundity variables  
+#   #conf$removeSamplers('int.F')
+#   #conf$removeSamplers('sigma.F')
+#   conf$removeSamplers('F.rand')
+#   conf$addSampler(target = paste0("F.rand[1:",(nyear-1),"]"), type="RW_block")
+#   conf$printSamplers("F.rand")
+# 
+#   ## block all the breeding variables  
+#   #conf$removeSamplers('int.B')
+#   #conf$removeSamplers('sigma.B')
+#   
+#   conf$removeSamplers('int.B')
+#   conf$addSampler(target = "int.B[1:2]", type="RW_block")
+#   conf$printSamplers("int.B")
+#   
+#   conf$removeSamplers('sigma.B')
+#   conf$addSampler(target = "sigma.B[1:2]", type="RW_block")
+#   conf$printSamplers("sigma.B")
+#   
+#   conf$removeSamplers('B.rand')
+#   for(b in 1:2){
+#     conf$addSampler(target = paste0("B.rand[",b,", 1:",(nyear-1),"]"), type="RW_block")
+#   }#s
+#   conf$printSamplers("B.rand")
+#   
+#   ## block all the recruiting variables  
+#   #conf$removeSamplers('int.R')
+#   #conf$removeSamplers('sigma.R')
+#   
+#   conf$removeSamplers('R.rand')
+#   conf$addSampler(target = "R.rand[4:14]", type="RW_block")
+#   conf$printSamplers("R.rand")
 
   ## block all the fledgling count variables  
   #conf$removeSamplers('nF')

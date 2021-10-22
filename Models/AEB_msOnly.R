@@ -175,8 +175,6 @@ YNAL.IPM <- nimbleCode({
   # LIKELIHOOD FOR MS MODEL ######
 
   for(i in 1:nind){
-    #z[i,first[i]] <- z.first[i]
-    
     zero[i] ~ dMultiStateHMM(y = Y[i,1:nyear], 
                              zfirst = z.first[i], 
                              first = first[i], 
@@ -186,15 +184,6 @@ YNAL.IPM <- nimbleCode({
                              n.occasions = nyear,
                              nStates = nstates
                              )
-    
-    # TODO this needs editing if you want to do it this way
-    # for(t in (first[i]+1):nyear){
-    #   #state equation
-    #   z[i,t] ~ dcat(S.t[z[i,(t-1)],t-1,i,1:nstates]) #### THIS NEEDS TO BE FIXED TO TRANSLATE TO NIMBLE
-    #   #observation equation
-    #   Y[i,t] ~ dcat(pi[z[i,t],t-1,1:nstates])        #### THIS NEEDS TO BE FIXED TO TRANSLATE TO NIMBLE
-    #   
-    # }
   }
   
 })  # End nimble Model code

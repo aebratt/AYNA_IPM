@@ -67,12 +67,13 @@ nb <- 10#000 #burn-in
 ni <- nb + nb #total iterations
 nt <- 1  #thin
 nc <- 3  #chains
+adaptInterval = 100
 
 #### COMPILE CONFIGURE AND BUILD ####
 Rmodel <- nimbleModel(code = YNAL.IPM, constants = YNAL.Consts, data = YNAL.Data, 
                       check = FALSE, calculate = FALSE, inits = inits)
 conf <- configureMCMC(Rmodel, monitors = parameters, thin = nt, 
-                      control = list(maxContractions = 1000)) 
+                      control = list(maxContractions = 1000, adaptInterval = adaptInterval)) 
 # lots of initial model checking you can do by exploring conf1
 # if you wanted to change samplers this is where you would do that
 
@@ -102,9 +103,9 @@ conf$printSamplers(type = "posterior") # check sampler defaults
   # R rand[4:14]
 
   ## block all the capture prob variables
-#   conf$removeSamplers('int.p')
-#   conf$addSampler(target = "int.p[1:10]", type="RW_block")
-#   conf$printSamplers("int.p")
+  conf$removeSamplers('int.p')
+  conf$addSampler(target = "int.p[1:10]", type="RW_block")
+  conf$printSamplers("int.p")
 # 
 #   conf$removeSamplers('sigma.p')
 #   conf$addSampler(target = "sigma.p[1:10]", type="RW_block")
@@ -190,3 +191,15 @@ out <- runMCMC(Cmcmc, niter = ni , nburnin = nb , nchains = nc, inits = inits,
                setSeed = FALSE, progressBar = TRUE, samplesAsCodaMCMC = TRUE)  
 t.end <- Sys.time()
 (runTime <- t.end - t.start)
+
+
+
+# we ran the murres for 110000
+# takes 1 minute to run 1 chain of 10 iterations
+# est 110000/10 * 1 = 11000 minutes to run to completion (1 chain)
+# est 7.5 days to run to completion (1 chain)
+# obviously going to be more when adding the count data, 
+# and any kind of structure to the model
+# so definitely need to pursue blocking
+
+

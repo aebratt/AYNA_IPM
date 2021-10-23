@@ -36,7 +36,7 @@ GetState <- nimbleFunction(
   }
 )
 
-CGetState <- compileNimble(GetState)
+#CGetState <- compileNimble(GetState)
 
 
 GetDetection <- nimbleFunction(
@@ -71,7 +71,7 @@ GetDetection <- nimbleFunction(
   }
 )
 
-CGetDetection <- compileNimble(GetDetection)
+#CGetDetection <- compileNimble(GetDetection)
 
 ##### DHMM ######
 

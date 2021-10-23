@@ -4,11 +4,28 @@
 # adapt model
 # compile todolist throughout these files
 
+library(tidyverse)
+library(data.table)
+library(nimble)
+library(devtools)
+library(mcmcplots)
+library(coda)
 library(here)
 library(nimbleEcology)
+library(foreach)
+library(doParallel)
 source(here("Models", "AEB_prepData.R"))
 source(here("Models", "AEB_msOnly.R"))
 source(here("Models", "AEB_nimbleFunctions.R"))
+
+#### MCMC SETTINGS ####
+# nb <- 10000 #burn-in
+# ni <- 33000 + nb #total iterations
+nb <- 10
+ni <- nb + nb
+nt <- 1  #thin
+nc <- 3  #chains
+adaptInterval = 100
 
 YNAL.Consts <- list(z.first=z.first,
                     first=first,
@@ -21,7 +38,7 @@ YNAL.Consts <- list(z.first=z.first,
                     #stable=stable
                     nstates = 6,
                     nages = 34 # TODO - remove hardcoding
-                    )
+)
 
 
 zero <- numeric(dim(Y)[1])
@@ -33,7 +50,7 @@ YNAL.Data <- list(Y=Y,
                   #z=z.data#, 
                   #nF=nF, 
                   #nP=nP
-                  )
+)
 
 # TODO - add more here
 parameters <- c("S",
@@ -44,7 +61,7 @@ parameters <- c("S",
                 #"n.breeders",
                 #"lambda.t",
                 #"mean.lambda"
-                ) 
+) 
 
 # 3. Specify initialisation values
 S.rand.st <- matrix(runif(2*(nyear-1),2,3),nrow=2,ncol=nyear-1)
@@ -62,12 +79,14 @@ inits <- list (#z=z.start,
                sigma.F=runif(1)
                )
 
-#### MCMC SETTINGS ####
-nb <- 10#000 #burn-in
-ni <- nb + nb #total iterations
-nt <- 1  #thin
-nc <- 3  #chains
-adaptInterval = 100
+# cores=detectCores()
+# cl <- makeCluster(nc, setup_strategy = "sequential") #not to overload your computer
+# registerDoParallel(cl)
+
+# foreach(i = 1:nc) %dopar% { #scenarios picked
+#   library(nimble)
+#   library(here)
+#   source(here("Models", "AEB_nimbleFunctions.R"))
 
 #### COMPILE CONFIGURE AND BUILD ####
 Rmodel <- nimbleModel(code = YNAL.IPM, constants = YNAL.Consts, data = YNAL.Data, 
@@ -187,12 +206,10 @@ Cmcmc <- compileNimble(Rmcmc, project = Rmodel)
 
 #### RUN MCMC ####
 t.start <- Sys.time()
-out <- runMCMC(Cmcmc, niter = ni , nburnin = nb , nchains = nc, inits = inits,
+out <- runMCMC(Cmcmc, niter = ni , nburnin = nb , nchains = 1, inits = inits,
                setSeed = FALSE, progressBar = TRUE, samplesAsCodaMCMC = TRUE)  
 t.end <- Sys.time()
 (runTime <- t.end - t.start)
-
-
 
 # we ran the murres for 110000
 # takes 1 minute to run 1 chain of 10 iterations
@@ -202,4 +219,9 @@ t.end <- Sys.time()
 # and any kind of structure to the model
 # so definitely need to pursue blocking
 
+# saveRDS(out, here("Models", paste("out-",i,".RDS", sep = "")))
+#t.end <- Sys.time()
+#(runTime <- t.end - t.start)
 
+# } # foreach - scenarios picked (i)
+# stopCluster(cl)

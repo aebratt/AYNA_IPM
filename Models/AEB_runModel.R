@@ -20,7 +20,7 @@ source(here("Models", "AEB_nimbleFunctions.R"))
 
 #### MCMC SETTINGS ####
 nb <- 10000 #burn-in
-ni <- 33000 + nb #total iterations
+ni <- 100000 + nb #total iterations
 nt <- 1  #thin
 nc <- 3  #chains
 

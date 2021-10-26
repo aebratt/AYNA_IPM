@@ -7,6 +7,12 @@
 # EXAMINE OUTPUT AND ASSESS CONVERGENCE
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+OUT <- list(`out-1`, `out-2`, `out-3`) %>% as.mcmc.list()
+library(coda)
+rhat <- gelman.diag(OUT, multivariate = FALSE) 
+rhat.proc <- rhat$psrf %>% as.data.frame() %>% filter(!is.nan(`Point est.`))
+
+
 ## CONVERT SUMMARY TO A DATA FRAME
 OUT<-as.data.frame(IPMrun$summary$all.chains)
 OUT$parameter<-row.names(OUT)

@@ -23,6 +23,7 @@ nb <- 10000 #burn-in
 ni <- 100000 + nb #total iterations
 nt <- 1  #thin
 nc <- 3  #chains
+adaptInterval = 100
 
 YNAL.Consts <- list(z.first=z.first,
                     first=first,
@@ -65,32 +66,31 @@ S.rand.st <- matrix(runif(2*(nyear-1),2,3),nrow=2,ncol=nyear-1)
 B.rand.st <- matrix(runif(2*(nyear-1),2,3),nrow=2,ncol=nyear-1)
 
 inits <- list (#z=z.start,
-  S.rand=S.rand.st,
-  int.S=runif(2,2,4),
-  sigma.S=runif(2),
-  int.B=runif(2,0,2),
-  sigma.B=runif(2),
-  B.rand=B.rand.st,
-  F.rand=runif(nyear-1),
-  int.F=runif(1,1,3),
-  sigma.F=runif(1)
-)
+               S.rand=S.rand.st,
+               int.S=runif(2,2,4),
+               sigma.S=runif(2),
+               int.B=runif(2,0,2),
+               sigma.B=runif(2),
+               B.rand=B.rand.st,
+               F.rand=runif(nyear-1),
+               int.F=runif(1,1,3),
+               sigma.F=runif(1)
+               )
 
+# cores=detectCores()
+# cl <- makeCluster(nc, setup_strategy = "sequential") #not to overload your computer
+# registerDoParallel(cl)
 
-cores=detectCores()
-cl <- makeCluster(nc, setup_strategy = "sequential") #not to overload your computer
-registerDoParallel(cl)
-
-foreach(i = 1:nc) %dopar% { #scenarios picked
-  library(nimble)
-  library(here)
-  source(here("Models", "AEB_nimbleFunctions.R"))
+# foreach(i = 1:nc) %dopar% { #scenarios picked
+#   library(nimble)
+#   library(here)
+#   source(here("Models", "AEB_nimbleFunctions.R"))
 
 #### COMPILE CONFIGURE AND BUILD ####
 Rmodel <- nimbleModel(code = YNAL.IPM, constants = YNAL.Consts, data = YNAL.Data, 
                       check = FALSE, calculate = FALSE, inits = inits)
 conf <- configureMCMC(Rmodel, monitors = parameters, thin = nt, 
-                      control = list(maxContractions = 1000)) 
+                      control = list(maxContractions = 1000, adaptInterval = adaptInterval)) 
 # lots of initial model checking you can do by exploring conf1
 # if you wanted to change samplers this is where you would do that
 
@@ -120,9 +120,9 @@ conf$printSamplers(type = "posterior") # check sampler defaults
   # R rand[4:14]
 
   ## block all the capture prob variables
-#   conf$removeSamplers('int.p')
-#   conf$addSampler(target = "int.p[1:10]", type="RW_block")
-#   conf$printSamplers("int.p")
+  conf$removeSamplers('int.p')
+  conf$addSampler(target = "int.p[1:10]", type="RW_block")
+  conf$printSamplers("int.p")
 # 
 #   conf$removeSamplers('sigma.p')
 #   conf$addSampler(target = "sigma.p[1:10]", type="RW_block")
@@ -203,12 +203,23 @@ Cmodel <- compileNimble(Rmodel, showCompilerOutput = FALSE)
 Cmcmc <- compileNimble(Rmcmc, project = Rmodel)
 
 #### RUN MCMC ####
-#t.start <- Sys.time()
+t.start <- Sys.time()
 out <- runMCMC(Cmcmc, niter = ni , nburnin = nb , nchains = 1, inits = inits,
                setSeed = FALSE, progressBar = TRUE, samplesAsCodaMCMC = TRUE)  
-saveRDS(out, here("Models", paste("out-",i,".RDS", sep = "")))
+t.end <- Sys.time()
+(runTime <- t.end - t.start)
+
+# we ran the murres for 110000
+# takes 1 minute to run 1 chain of 10 iterations
+# est 110000/10 * 1 = 11000 minutes to run to completion (1 chain)
+# est 7.5 days to run to completion (1 chain)
+# obviously going to be more when adding the count data, 
+# and any kind of structure to the model
+# so definitely need to pursue blocking
+
+# saveRDS(out, here("Models", paste("out-",i,".RDS", sep = "")))
 #t.end <- Sys.time()
 #(runTime <- t.end - t.start)
 
-} # foreach - scenarios picked (i)
-stopCluster(cl)
+# } # foreach - scenarios picked (i)
+# stopCluster(cl)

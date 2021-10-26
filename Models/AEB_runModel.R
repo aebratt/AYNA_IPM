@@ -123,79 +123,73 @@ conf$printSamplers(type = "posterior") # check sampler defaults
 
   ## block all the capture prob variables
   conf$removeSamplers('int.p')
-  conf$addSampler(target = "int.p[1:10]", type="RW_block")
+  conf$addSampler(target = "int.p[1:10]", type="AF_slice")
   conf$printSamplers("int.p")
 # 
-#   conf$removeSamplers('sigma.p')
-#   conf$addSampler(target = "sigma.p[1:10]", type="RW_block")
-#   conf$printSamplers("sigma.p")
-#   
+  conf$removeSamplers('sigma.p')
+  conf$addSampler(target = "sigma.p[1:10]", type="AF_slice")
+  conf$printSamplers("sigma.p")
+
+  # TODO
+  # for some reason this creates an error?
 #   conf$removeSamplers('p.link')
 # for(link in 1:10){
-#     conf$addSampler(target = paste0("p.link[",link,", 1:",(nyear-1),"]"), type="RW_block")
+#     conf$addSampler(target = paste0("p.link[",link,", 1:",(nyear-1),"]"), type="AF_slice")
 # }#s
 #   conf$printSamplers("p.link")
 #   
 #   ## block all the survival variables
-#   #conf$removeSamplers('int.s')
-#   #conf$removeSamplers('sigma.S')
+
+  conf$removeSamplers('int.S')
+  conf$addSampler(target = "int.S[1:2]", type="AF_slice")
+  conf$printSamplers("int.S")
+
+  conf$removeSamplers('sigma.S')
+  conf$addSampler(target = "sigma.S[1:2]", type="AF_slice")
+  conf$printSamplers("sigma.S")
 #   
-#   conf$removeSamplers('int.S')
-#   conf$addSampler(target = "int.S[1:2]", type="RW_block")
-#   conf$printSamplers("int.S")
-#   
-#   conf$removeSamplers('sigma.S')
-#   conf$addSampler(target = "sigma.S[1:2]", type="RW_block")
-#   conf$printSamplers("sigma.S")
-#   
-#   conf$removeSamplers('S.rand')
-#   for(s in 1:2){
-#     conf$addSampler(target = paste0("S.rand[",s,", 1:",(nyear-1),"]"), type="RW_block")
-#   }#s
-#   conf$printSamplers("S.rand")
+  conf$removeSamplers('S.rand')
+  for(s in 1:2){
+    conf$addSampler(target = paste0("S.rand[",s,", 1:",(nyear-1),"]"), type="AF_slice")
+  }#s
+  conf$printSamplers("S.rand")
 #   
 #   ## block all the fecundity variables  
-#   #conf$removeSamplers('int.F')
-#   #conf$removeSamplers('sigma.F')
-#   conf$removeSamplers('F.rand')
-#   conf$addSampler(target = paste0("F.rand[1:",(nyear-1),"]"), type="RW_block")
-#   conf$printSamplers("F.rand")
+  conf$removeSamplers('F.rand')
+  conf$addSampler(target = paste0("F.rand[1:",(nyear-1),"]"), type="AF_slice")
+  conf$printSamplers("F.rand")
 # 
 #   ## block all the breeding variables  
-#   #conf$removeSamplers('int.B')
-#   #conf$removeSamplers('sigma.B')
 #   
-#   conf$removeSamplers('int.B')
-#   conf$addSampler(target = "int.B[1:2]", type="RW_block")
-#   conf$printSamplers("int.B")
+  conf$removeSamplers('int.B')
+  conf$addSampler(target = "int.B[1:2]", type="AF_slice")
+  conf$printSamplers("int.B")
+
+  conf$removeSamplers('sigma.B')
+  conf$addSampler(target = "sigma.B[1:2]", type="AF_slice")
+  conf$printSamplers("sigma.B")
 #   
-#   conf$removeSamplers('sigma.B')
-#   conf$addSampler(target = "sigma.B[1:2]", type="RW_block")
-#   conf$printSamplers("sigma.B")
-#   
-#   conf$removeSamplers('B.rand')
-#   for(b in 1:2){
-#     conf$addSampler(target = paste0("B.rand[",b,", 1:",(nyear-1),"]"), type="RW_block")
-#   }#s
-#   conf$printSamplers("B.rand")
+  conf$removeSamplers('B.rand')
+  for(b in 1:2){
+    conf$addSampler(target = paste0("B.rand[",b,", 1:",(nyear-1),"]"), type="AF_slice")
+  }#s
+  conf$printSamplers("B.rand")
 #   
 #   ## block all the recruiting variables  
-#   #conf$removeSamplers('int.R')
-#   #conf$removeSamplers('sigma.R')
-#   
-#   conf$removeSamplers('R.rand')
-#   conf$addSampler(target = "R.rand[4:14]", type="RW_block")
-#   conf$printSamplers("R.rand")
+
+  conf$removeSamplers('R.rand')
+  conf$addSampler(target = "R.rand[4:14]", type="AF_slice")
+  conf$printSamplers("R.rand")
 
   ## block all the fledgling count variables  
   #conf$removeSamplers('nF')
   #conf$removeSamplers('tau.Fl')
-  #conf$addSampler(target = c('nF','tau.Fl'), type = "RW_block")
+  #conf$addSampler(target = c('nF','tau.Fl'), type = "AF_slice")
   ## block all the pair count variables  
   #conf$removeSamplers('nP')
   #conf$removeSamplers('tau.Pr')
   #conf$removeSamplers('sigma.Pr')
-  #conf$addSampler(target = c('nP','tau.Pr','sigma.Pr'), type = "RW_block")
+  #conf$addSampler(target = c('nP','tau.Pr','sigma.Pr'), type = "AF_slice")
   conf
 
 ############
@@ -206,7 +200,7 @@ Cmcmc <- compileNimble(Rmcmc, project = Rmodel)
 
 #### RUN MCMC ####
 t.start <- Sys.time()
-out <- runMCMC(Cmcmc, niter = ni , nburnin = nb , nchains = 1, inits = inits,
+out <- runMCMC(Cmcmc, niter = ni , nburnin = nb , nchains = nc, inits = inits,
                setSeed = FALSE, progressBar = TRUE, samplesAsCodaMCMC = TRUE)  
 t.end <- Sys.time()
 (runTime <- t.end - t.start)

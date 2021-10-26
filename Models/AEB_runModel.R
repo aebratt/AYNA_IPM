@@ -19,10 +19,8 @@ source(here("Models", "AEB_msOnly.R"))
 source(here("Models", "AEB_nimbleFunctions.R"))
 
 #### MCMC SETTINGS ####
-# nb <- 10000 #burn-in
-# ni <- 33000 + nb #total iterations
-nb <- 10
-ni <- nb + nb
+nb <- 10000 #burn-in
+ni <- 100000 + nb #total iterations
 nt <- 1  #thin
 nc <- 3  #chains
 adaptInterval = 100

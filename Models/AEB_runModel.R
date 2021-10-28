@@ -83,14 +83,14 @@ inits <- list (#z=z.start,
                sigma.F=runif(1)
                )
 
-# cores=detectCores()
-# cl <- makeCluster(nc, setup_strategy = "sequential") #not to overload your computer
-# registerDoParallel(cl)
+cores=detectCores()
+cl <- makeCluster(nc, setup_strategy = "sequential") #not to overload your computer
+registerDoParallel(cl)
 
-# foreach(i = 1:nc) %dopar% { #scenarios picked
-#   library(nimble)
-#   library(here)
-#   source(here("Models", "AEB_nimbleFunctions.R"))
+foreach(i = 1:nc) %dopar% { #scenarios picked
+  library(nimble)
+  library(here)
+  source(here("Models", "AEB_nimbleFunctions.R"))
 
 #### COMPILE CONFIGURE AND BUILD ####
 Rmodel <- nimbleModel(code = YNAL.IPM, constants = YNAL.Consts, data = YNAL.Data, 
@@ -226,9 +226,9 @@ t.end <- Sys.time()
 # and any kind of structure to the model
 # so definitely need to pursue blocking
 
-# saveRDS(out, here("Models", paste("out-",i,".RDS", sep = "")))
+saveRDS(out, here("Models", paste("out-",i,".RDS", sep = "")))
 #t.end <- Sys.time()
 #(runTime <- t.end - t.start)
 
-# } # foreach - scenarios picked (i)
-# stopCluster(cl)
+} # foreach - scenarios picked (i)
+stopCluster(cl)

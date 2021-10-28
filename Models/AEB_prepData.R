@@ -206,6 +206,9 @@ age[is.na(age)]<- nyear			### changed from 33
 yrs.out <- c(18,22,23,24,25,26,27,32,34)
 yrs.in <- c(1:(nyear-1))
 yrs.in <- yrs.in[-yrs.out]
+# AEB - you get a posterior predictive sampler when you include the last year (out)
+yrs.out <- yrs.out[-length(yrs.out)]
+###
 nyear.out <- length(yrs.out)
 nyear.in <- length(yrs.in)
 

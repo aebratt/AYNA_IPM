@@ -9,6 +9,7 @@
 
 OUT <- list(`out-1`, `out-2`, `out-3`) %>% as.mcmc.list()
 library(coda)
+OUT <- out
 rhat <- gelman.diag(OUT, multivariate = FALSE) 
 rhat.proc <- rhat$psrf %>% as.data.frame() %>% filter(!is.nan(`Point est.`))
 

@@ -204,7 +204,10 @@ load("GOUGH_seabird_CMR_data.RData")
 
 ## filter data for the selected species
 contacts<-contacts %>% filter(SpeciesCode==SP) %>% ## %>% filter(Location %in% c("Area 1","Not Specified")) - filter by location optional
-  mutate(Contact_Year=ifelse(!is.na(Date_Time) & (Contact_Year != year(Date_Time)),year(Date_Time),Contact_Year))  ## fix years that were initially used as 'season'
+  mutate(Contact_Year=ifelse(!is.na(Date_Time) & (Contact_Year != year(Date_Time)),year(Date_Time),Contact_Year)) %>% ## fix years that were initially used as 'season'
+  mutate(Contact_Year=ifelse(((Age %in% c("Chick","Fledgling") & is.na(Date_Time) & (Contact_Year == as.integer(substr(Contact_Season,1,4))))),  #
+                             as.integer(Contact_Year)+1,as.integer(Contact_Year))) ## fix years that were initially used as 'season'
+
 
 ages<-ages %>% filter(SpeciesCode==SP)
 bands<-bands %>% filter(SpeciesCode==SP)
@@ -214,6 +217,10 @@ dim(contacts)
 sort(unique(contacts$Contact_Year))
 which(!((start:2021) %in% sort(unique(contacts$Contact_Year))))
 (start:2021)[which(!(start:2021 %in% sort(unique(contacts$Contact_Year))))]
+unique(contacts$Contact_Year)
+
+contacts %>% filter(BirdID=="GO-16-18-556")
+
 
 #############################################################################
 ##   6. AGE ASSIGNMENT OF BIRDS FOR SURVIVAL ANALYSIS ###############
@@ -224,12 +231,13 @@ deploy_age<-contacts %>% arrange(BirdID, Date_Time,Contact_Year) %>%
   mutate(AGE=ifelse(Age %in% c("Chick","Fledgling"),0,1)) %>%
   arrange(BirdID,Contact_Year,Date_Time) %>%
   group_by(BirdID) %>%
-  summarise(MIN_AGE=min(AGE,na.rm=T), MAX_AGE=max(AGE,na.rm=T), FIRST_AGE=first(Age,na.rm=T), FIRST_Date=first(Date_Time), FIRST_YEAR=min(Contact_Year,na.rm=T)) %>% #filter(is.na(FIRST_YEAR))
+  summarise(MIN_AGE=min(AGE,na.rm=T), MAX_AGE=max(AGE,na.rm=T), FIRST_AGE=first(Age,na.rm=T), FIRST_Date=first(Date_Time,na.rm=T), FIRST_YEAR=min(Contact_Year,na.rm=T)) %>% #filter(is.na(FIRST_YEAR))
   mutate(FIRST_AGE=ifelse(FIRST_AGE=="Unknown" & month(FIRST_Date)>6,"Adult", as.character(FIRST_AGE))) %>%  ### unknowns marked after June were not chicks
   mutate(FIRST_YEAR=ifelse(is.na(FIRST_YEAR),year(FIRST_Date),FIRST_YEAR))
 head(deploy_age)
 dim(deploy_age)
 unique(deploy_age$FIRST_YEAR)
+
 
 MISSAGE<-deploy_age %>% filter(is.na(FIRST_AGE)) %>%   left_join(bands, by="BirdID") %>%
   select(BirdID, Band_Number,MIN_AGE,FIRST_Date,FIRST_YEAR)

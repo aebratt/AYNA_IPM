@@ -28,9 +28,9 @@ IPMstart<-2007 ## for count and breeding success data - only start reliably in 2
 ###################################################################################
 
 ## run the RODBC import of nest and count data in a 32-bit version of R
-system(paste0("C:/PROGRA~1/R/R-35~1.1/bin/i386/Rscript.exe ", shQuote("C:\\STEFFEN\\RSPB\\UKOT\\Gough\\DATA\\Breeding_Database\\RODBC_count_import.r")), wait = TRUE, invisible = FALSE, intern = T)
+#system(paste0("C:/PROGRA~1/R/R-35~1.1/bin/i386/Rscript.exe ", shQuote("C:\\STEFFEN\\RSPB\\UKOT\\Gough\\DATA\\Breeding_Database\\RODBC_count_import.r")), wait = TRUE, invisible = FALSE, intern = T)
 #system(paste0(Sys.getenv("R_HOME"), "/bin/i386/Rscript.exe ", shQuote("C:\\STEFFEN\\RSPB\\UKOT\\Gough\\DATA\\Breeding_Database\\RODBC_count_import.r")), wait = TRUE, invisible = FALSE, intern = T)
-try(setwd("C:\\STEFFEN\\RSPB\\UKOT\\Gough\\DATA\\Breeding_Database"), silent=T)
+#try(setwd("C:\\STEFFEN\\RSPB\\UKOT\\Gough\\DATA\\Breeding_Database"), silent=T)
 load("GOUGH_seabird_data.RData")
 
 
@@ -65,7 +65,7 @@ unique(counts$Cohort)
 #############################################################################
 ##   3. PREPARE THE BREEDING SUCCESS DATA FROM NEST RECORDS #################
 #############################################################################
-try(setwd("C:\\STEFFEN\\RSPB\\UKOT\\Gough\\ANALYSIS\\PopulationModel\\AYNA_IPM"), silent=T)
+#try(setwd("C:\\STEFFEN\\RSPB\\UKOT\\Gough\\ANALYSIS\\PopulationModel\\AYNA_IPM"), silent=T)
 
 
 ### remove only partially monitored nests
@@ -194,9 +194,9 @@ theme(panel.background=element_rect(fill="white", colour="black"),
 #############################################################################
 
 ## run the RODBC import of CMR data in a 32-bit version of R
-system(paste0("C:/PROGRA~1/R/R-35~1.1/bin/i386/Rscript.exe ", shQuote("C:\\STEFFEN\\RSPB\\UKOT\\Gough\\ANALYSIS\\PopulationModel\\AYNA_IPM\\RODBC_CMR_import_AYNA.R")), wait = TRUE, invisible = FALSE, intern = T)
+#system(paste0("C:/PROGRA~1/R/R-35~1.1/bin/i386/Rscript.exe ", shQuote("C:\\STEFFEN\\RSPB\\UKOT\\Gough\\ANALYSIS\\PopulationModel\\AYNA_IPM\\RODBC_CMR_import_AYNA.R")), wait = TRUE, invisible = FALSE, intern = T)
 #system(paste0(Sys.getenv("R_HOME"), "/bin/i386/Rscript.exe ", shQuote("C:\\STEFFEN\\RSPB\\UKOT\\Gough\\ANALYSIS\\PopulationModel\\AYNA_IPM\\RODBC_CMR_import_AYNA.R")), wait = TRUE, invisible = FALSE, intern = T)
-try(setwd("C:\\STEFFEN\\RSPB\\UKOT\\Gough\\ANALYSIS\\PopulationModel\\AYNA_IPM"), silent=T)
+#try(setwd("C:\\STEFFEN\\RSPB\\UKOT\\Gough\\ANALYSIS\\PopulationModel\\AYNA_IPM"), silent=T)
 load("GOUGH_seabird_CMR_data.RData")
 
 
@@ -211,8 +211,9 @@ bands<-bands %>% filter(SpeciesCode==SP)
 
 head(contacts)  ## CMR data
 dim(contacts)
-unique(contacts$Contact_Year)
-
+sort(unique(contacts$Contact_Year))
+which(!((start:2021) %in% sort(unique(contacts$Contact_Year))))
+(start:2021)[which(!(start:2021 %in% sort(unique(contacts$Contact_Year))))]
 
 #############################################################################
 ##   6. AGE ASSIGNMENT OF BIRDS FOR SURVIVAL ANALYSIS ###############
@@ -244,14 +245,12 @@ contacts %>% #filter(is.na(Date_Time)) %>%
 
 
 contacts<-contacts %>%
-  mutate(Contact_Season=if_else(is.na(Contact_Season),if_else(Age=="Chick",paste(Contact_Year-1,"-",substr(Contact_Year,3,4)),
-                                                              paste(Contact_Year,"-",as.integer(substr(Contact_Year,3,4))+1)),
+  mutate(Contact_Season=if_else(is.na(Contact_Season),if_else(Age=="Chick",paste(Contact_Year-1,"-",substr(Contact_Year,3,4), sep =""),
+                                                              paste(Contact_Year,"-",as.integer(substr(Contact_Year,3,4))+1, sep = "")),
                                 Contact_Season))
 dim(contacts)
 head(contacts)
-
-
-
+sort(unique(contacts$Contact_Season))
 
 ### ASSIGN AGE TO BIRDS WHERE THIS IS NOT SPECIFIED
 ## include a column with continuous age 
@@ -302,8 +301,17 @@ contacts<-fixed_contacts %>%
 dim(contacts)
 unique(contacts$FIRST_AGE)
 
+sort(unique(contacts$Contact_Season))
 
-
+all.seasons <- paste(1978:2021, "-", 
+                     c(79:99, 
+                       "00", "01", "02", "03", "04", "05", "06", "07", "08", "09", 
+                       10:22), 
+                     sep = "")
+all.seasons
+which(!(all.seasons %in% sort(unique(contacts$Contact_Season))))
+no.contact.seasons <- all.seasons[which(!(all.seasons %in% sort(unique(contacts$Contact_Season))))]
+no.contact.seasons
 
 ################################################################################################
 ##   8. TRY TO QUANTIFY OBSERVATION EFFORT  ###############
@@ -365,7 +373,7 @@ ggplot() + geom_bar(aes(x=Contact_Year,y=prop.seen, fill=Effort), stat="identity
         legend.position=c(0.15, 0.90),
         panel.border = element_blank()) 
 
-ggsave("C:\\STEFFEN\\MANUSCRIPTS\\in_prep\\AYNA_IPM\\FigS1.jpg", width=9, height=6)
+#ggsave("C:\\STEFFEN\\MANUSCRIPTS\\in_prep\\AYNA_IPM\\FigS1.jpg", width=9, height=6)
 
 
 
@@ -374,6 +382,8 @@ ggsave("C:\\STEFFEN\\MANUSCRIPTS\\in_prep\\AYNA_IPM\\FigS1.jpg", width=9, height
 #############################################################################
 head(contacts)
 
+sort(unique(contacts$Contact_Season))
+
 ### SIMPLE BINARY ENCOUNTER HISTORY FOR CHICKS AND ADULTS
 AYNA_CHICK<- contacts %>% mutate(count=1) %>%
   filter(FIRST_AGE %in% c("Chick","Fledgling")) %>%
@@ -381,7 +391,27 @@ AYNA_CHICK<- contacts %>% mutate(count=1) %>%
   summarise(STATE=max(count)) %>%
   spread(key=Contact_Season, value=STATE, fill=0) %>%
   arrange(BirdID)
-dim(AYNA_CHICK)  ## TO DO: THIS MATRIX MUST BE PADDED BY YEARS WITH 0 CHICKS RINGED
+dim(AYNA_CHICK)  
+
+## THIS MATRIX MUST BE PADDED BY YEARS WITH 0 CHICKS RINGED
+colnames(AYNA_CHICK)[-1]
+length(colnames(AYNA_CHICK)[-1])
+which(!(all.seasons %in% colnames(AYNA_CHICK)[-1]))
+all.seasons[which(!(all.seasons %in% colnames(AYNA_CHICK)[-1]))]
+pad.chicks.vec <- all.seasons[which(!(all.seasons %in% colnames(AYNA_CHICK)[-1]))]
+pad.chicks.vec
+
+pad.chicks <- data.frame(matrix(0, nrow = dim(AYNA_CHICK)[1], ncol = length(pad.chicks.vec)))
+colnames(pad.chicks) <- pad.chicks.vec
+head(pad.chicks)
+
+AYNA_CHICK.tmp <- cbind(AYNA_CHICK, pad.chicks)
+colnames(AYNA_CHICK.tmp) <- c(colnames(AYNA_CHICK), pad.chicks.vec)
+colnames(AYNA_CHICK.tmp)
+
+AYNA_CHICK <- AYNA_CHICK.tmp %>% select("BirdID", sort(colnames(.)))
+colnames(AYNA_CHICK)[-1]
+dim(AYNA_CHICK)
 
 ### identify number of chicks ringed every year
 phi.juv.possible<-AYNA_CHICK %>% gather(key='Year', value='count',-BirdID) %>% group_by(Year) %>% summarise(N=sum(count)) %>%
@@ -401,6 +431,24 @@ AYNA_AD<- contacts %>% mutate(count=1) %>%
   arrange(BirdID)
 dim(AYNA_AD)
 
+colnames(AYNA_AD)[-1]
+length(colnames(AYNA_AD)[-1])
+which(!(all.seasons %in% colnames(AYNA_AD)[-1]))
+all.seasons[which(!(all.seasons %in% colnames(AYNA_AD)[-1]))]
+pad.adults.vec <- all.seasons[which(!(all.seasons %in% colnames(AYNA_AD)[-1]))]
+pad.adults.vec
+
+pad.adults <- data.frame(matrix(0, nrow = dim(AYNA_AD)[1], ncol = length(pad.adults.vec)))
+colnames(pad.adults) <- pad.adults.vec
+head(pad.adults)
+
+AYNA_AD.tmp <- cbind(AYNA_AD, pad.adults)
+colnames(AYNA_AD.tmp) <- c(colnames(AYNA_AD), pad.adults.vec)
+colnames(AYNA_AD.tmp)
+
+AYNA_AD <- AYNA_AD.tmp %>% select("BirdID", sort(colnames(.)))
+colnames(AYNA_AD)[-1]
+dim(AYNA_AD)
 
 ### CONVERT TO SIMPLE MATRICES WITHOUT BIRD ID COLUMN
 CH.J<-as.matrix(AYNA_CHICK[,2:dim(AYNA_CHICK)[2]])
@@ -536,5 +584,6 @@ contacts %>% filter(BirdID %in% unique(DOUBLE_CHECK$BirdID)) %>%
 #############################################################################
 ##   11. SAVE WORKSPACE ###############
 #############################################################################
-setwd("C:\\STEFFEN\\RSPB\\UKOT\\Gough\\ANALYSIS\\PopulationModel\\AYNA_IPM")
-save.image("AYNA_IPM_input.marray.RData")
+# TODO - change this
+#setwd("C:\\STEFFEN\\RSPB\\UKOT\\Gough\\ANALYSIS\\PopulationModel\\AYNA_IPM")
+#save.image("AYNA_IPM_input.marray.RData")

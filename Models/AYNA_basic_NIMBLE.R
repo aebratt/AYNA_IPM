@@ -140,7 +140,7 @@ code <- nimbleCode({
   # -------------------------------------------------        
   # 1.1. Priors and constraints FOR FECUNDITY
   # -------------------------------------------------
-  for (t in 1:T){  
+  for (t in 1:TT){  
     ann.fec[t] ~ dunif(0.2,0.8)           # Priors on fecundity can range from 0-1 chicks per pair (constrained based on our data)
     imm.rec[t]~dunif(0.05,0.95)                ## RECRUITMENT PROBABILITY COULD SET MORE INFORMATIVE PRIOR HERE
     skip.prob[t]~dunif(0.15,0.45)              ## PRIOR FOR ADULT BREEDER SKIPPING PROBABILITY from Cuthbert paper that reported breeding propensity of 0.66
@@ -163,15 +163,15 @@ code <- nimbleCode({
   ### RECAPTURE PROBABILITY
   mean.p ~ dunif(0, 1)                          # Prior for mean recapture
   logit.p <- log(mean.p / (1-mean.p))           # Logit transformation
-  
-  for (t in 1:T){
+
+  for (t in 1:TT){
     logit(p[t]) <- logit.p  + capt.raneff[t]
     capt.raneff[t] ~ dnorm(0, sd = sigma.capt)
   }
   
   ### SURVIVAL PROBABILITY
   for (i in 1:nind){
-    for (t in f[i]:(T-1)){
+    for (t in f[i]:(TT-1)){
       logit(phi[i,t]) <- mu[AGEMAT[i,t]] + surv.raneff[t]
     } #t
   } #i
@@ -181,16 +181,16 @@ code <- nimbleCode({
     beta[age] ~ dunif(0, 1)                         # Priors for age-specific survival
     mu[age] <- log(beta[age] / (1-beta[age]))       # Logit transformation
   }
-  
+
   ## RANDOM TIME EFFECT ON SURVIVAL 
-  for (t in 1:(T-1)){
+  for (t in 1:(TT-1)){
     surv.raneff[t] ~ dnorm(0, sd = sigma.surv)
   }
-  
-  ### PRIORS FOR RANDOM EFFECTS
+  # 
+  # ### PRIORS FOR RANDOM EFFECTS
   sigma.surv ~ dunif(0, 10)                     # Prior for standard deviation of survival
   sigma.capt ~ dunif(0, 10)                     # Prior for standard deviation of capture
-  
+
   #-------------------------------------------------  
   # 2. LIKELIHOODS AND ECOLOGICAL STATE MODEL
   #-------------------------------------------------
@@ -199,55 +199,55 @@ code <- nimbleCode({
   # 2.1. System process: female based matrix model
   # -------------------------------------------------
   
-  for (tt in 2:T){
-    
-    ## THE PRE-BREEDING YEARS ##
-    nestlings[tt] <- max(1, ann.fec[tt] * 0.5 * Ntot.breed[tt])   ### number of locally produced FEMALE chicks
-    JUV[tt] ~ dpois(nestlings[tt])                                ### need a discrete number otherwise dbin will fail, dpois must be >0
-    N1[tt]  ~ dbin(ann.surv[1,tt-1], JUV[tt-1])                   ### number of 1-year old survivors 
-    N2[tt] ~ dbin(ann.surv[1,tt-1], N1[tt-1])                     ### number of 2-year old survivors
-    N3[tt] ~ dbin(ann.surv[1,tt-1], N2[tt-1])                     ### number of 3-year old survivors
-    N4[tt] ~ dbin(ann.surv[1,tt-1], N3[tt-1])                     ### number of 4-year old survivors
-    N5[tt] ~ dbin(ann.surv[1,tt-1], N4[tt-1])                     ### number of 5-year old survivors
-    
-    ## THE POTENTIAL RECRUITING YEARS ##
-    N6[tt] ~ dbin(ann.surv[1,tt-1], round(N5[tt-1]))                                     ### number of 6-year old survivors that are ready for recruitment
-    N.notrecruited[tt] ~ dbin(ann.surv[2,tt-1], max(1,non.recruits[tt-1]))      ### number of not-yet-recruited birds surviving from previous year
-    non.recruits[tt]<-N6[tt]+N.notrecruited[tt]-ann.recruits[tt]                      ## number of birds that do not recruit is the sum of all available minus the ones that do recruit
-    
-    ## THE BREEDING YEARS ##
-    Ntot.breed[tt] ~ dpois(pop.size[tt])                                           ### the annual number of breeding birds is the estimate from the count SSM
-    ann.recruits[tt] ~ dbin(imm.rec[tt],Ntot.breed[tt]-Nold.breed[tt])          ### this total number comprises a bunch of new recruits, which is the number of total breeders that are not old breeders
-    Nold.breed[tt]<- N.pot.breed[tt]-N.non.breed[tt]                              ### number of old breeders is survivors from previous year minus those that skip a year of breeding
-    N.pot.breed[tt] ~ dbin(ann.surv[2,tt-1], Ntot.breed[tt-1]+N.non.breed[tt-1])   ### number of potential old breeders is the number of survivors from previous year breeders and nonbreeders
-    N.non.breed[tt] ~ dbin(skip.prob[tt], N.pot.breed[tt])                             ### number of old nonbreeders (birds that have bred before and skip breeding) 
-  } # tt
-  
-  ### INITIAL VALUES FOR COMPONENTS FOR YEAR 1 - based on stable stage distribution from previous model
-  JUV[1]<-round(Ntot.breed[1]*0.5*ann.fec[1])
-  N1[1]<-round(Ntot.breed[1]*0.17574058)
-  N2[1]<-round(Ntot.breed[1]*0.11926872)
-  N3[1]<-round(Ntot.breed[1]*0.10201077)
-  N4[1]<-round(Ntot.breed[1]*0.08725001)
-  N5[1]<-round(Ntot.breed[1]*0.07462511)
-  non.recruits[1]<-round(Ntot.breed[1]*0.3147774)
-  Ntot.breed[1]<-sum(y.count[1,])
-  N.non.breed[1]<- round(Ntot.breed[1]*0.12632740)
+  # for (tt in 2:TT){
+  # 
+  #   ## THE PRE-BREEDING YEARS ##
+  #   nestlings[tt] <- max(1, ann.fec[tt] * 0.5 * Ntot.breed[tt])   ### number of locally produced FEMALE chicks
+  #   JUV[tt] ~ dpois(nestlings[tt])                                ### need a discrete number otherwise dbin will fail, dpois must be >0
+  #   N1[tt]  ~ dbin(ann.surv[1,tt-1], JUV[tt-1])                   ### number of 1-year old survivors
+  #   N2[tt] ~ dbin(ann.surv[1,tt-1], N1[tt-1])                     ### number of 2-year old survivors
+  #   N3[tt] ~ dbin(ann.surv[1,tt-1], N2[tt-1])                     ### number of 3-year old survivors
+  #   N4[tt] ~ dbin(ann.surv[1,tt-1], N3[tt-1])                     ### number of 4-year old survivors
+  #   N5[tt] ~ dbin(ann.surv[1,tt-1], N4[tt-1])                     ### number of 5-year old survivors
+  # 
+  #   ## THE POTENTIAL RECRUITING YEARS ##
+  #   N6[tt] ~ dbin(ann.surv[1,tt-1], round(N5[tt-1]))                                     ### number of 6-year old survivors that are ready for recruitment
+  #   N.notrecruited[tt] ~ dbin(ann.surv[2,tt-1], max(1,non.recruits[tt-1]))      ### number of not-yet-recruited birds surviving from previous year
+  #   non.recruits[tt]<-N6[tt]+N.notrecruited[tt]-ann.recruits[tt]                      ## number of birds that do not recruit is the sum of all available minus the ones that do recruit
+  # 
+  #   ## THE BREEDING YEARS ##
+  #   Ntot.breed[tt] ~ dpois(pop.size[tt])                                           ### the annual number of breeding birds is the estimate from the count SSM
+  #   ann.recruits[tt] ~ dbin(imm.rec[tt],Ntot.breed[tt]-Nold.breed[tt])          ### this total number comprises a bunch of new recruits, which is the number of total breeders that are not old breeders
+  #   Nold.breed[tt]<- N.pot.breed[tt]-N.non.breed[tt]                              ### number of old breeders is survivors from previous year minus those that skip a year of breeding
+  #   N.pot.breed[tt] ~ dbin(ann.surv[2,tt-1], Ntot.breed[tt-1]+N.non.breed[tt-1])   ### number of potential old breeders is the number of survivors from previous year breeders and nonbreeders
+  #   N.non.breed[tt] ~ dbin(skip.prob[tt], N.pot.breed[tt])                             ### number of old nonbreeders (birds that have bred before and skip breeding)
+  # } # tt
+  # 
+  # ### INITIAL VALUES FOR COMPONENTS FOR YEAR 1 - based on stable stage distribution from previous model
+  # JUV[1]<-round(Ntot.breed[1]*0.5*ann.fec[1])
+  # N1[1]<-round(Ntot.breed[1]*0.17574058)
+  # N2[1]<-round(Ntot.breed[1]*0.11926872)
+  # N3[1]<-round(Ntot.breed[1]*0.10201077)
+  # N4[1]<-round(Ntot.breed[1]*0.08725001)
+  # N5[1]<-round(Ntot.breed[1]*0.07462511)
+  # non.recruits[1]<-round(Ntot.breed[1]*0.3147774)
+  # Ntot.breed[1]<-sum(y.count[1,1:n.sites])
+  # N.non.breed[1]<- round(Ntot.breed[1]*0.12632740)
   
   # -------------------------------------------------        
   # 2.2. Observation process for population counts: state-space model of annual counts
   # -------------------------------------------------
   
   for (s in 1:n.sites){			### start loop over every study area
-    
+
     ## State process for entire time series
-    for (t in 1:(T-1)){
+    for (t in 1:(TT-1)){
       lambda[t,s] ~ dnorm(mean.lambda[s], sd = sigma.proc[s])								# Distribution for random error of growth rate
       N.est[t+1,s]<-N.est[t,s]*lambda[t,s]										        # Linear predictor (population size based on past pop size and change rate)
     }														# run this loop over nyears
-    
+
     ## Observation process
-    for (t in 1:T){
+    for (t in 1:TT){
       y.count[t,s] ~ dnorm(N.est[t,s], sd = sigma.obs[s])								# Distribution for random error in observed numbers (counts)
     }														# run this loop over t= nyears
   }		## end site loop
@@ -255,7 +255,8 @@ code <- nimbleCode({
   # -------------------------------------------------        
   # 2.3. Likelihood for fecundity: Poisson regression from the number of surveyed broods
   # -------------------------------------------------
-  for (t in 1:(T-1)){
+  
+  for (t in 1:(TT-1)){
     J[t] ~ dpois(rho.fec[t])
     rho.fec[t] <- R[t]*ann.fec[t]
   } #	close loop over every year in which we have fecundity data
@@ -268,11 +269,11 @@ code <- nimbleCode({
   for (i in 1:nind){
     # Define latent state at first capture
     z[i,f[i]] <- 1
-    for (t in (f[i]+1):T){
+    for (t in (f[i]+1):TT){
       # State process
       z[i,t] ~ dbern(mu1[i,t])
       mu1[i,t] <- phi[i,t-1] * z[i,t-1]
-      
+
       # Observation process
       y[i,t] ~ dbern(mu2[i,t])
       mu2[i,t] <- p[t] * z[i,t]
@@ -284,19 +285,19 @@ code <- nimbleCode({
   #-------------------------------------------------
   
   ## DERIVED SURVIVAL PROBABILITIES PER YEAR 
-  for (t in 1:(T-1)){
+  for (t in 1:(TT-1)){
     for (age in 1:2){
       logit(ann.surv[age,t]) <- mu[age] + surv.raneff[t]
     }
   }
   
-  ## DERIVED POPULATION SIZE PER YEAR 
-  for (t in 1:T){
+  # ## DERIVED POPULATION SIZE PER YEAR 
+  for (t in 1:TT){
     pop.size[t]<-sum(N.est[t,1:n.sites])
   }
   
-  ## DERIVED OVERALL POPULATION GROWTH RATE 
-  pop.growth.rate <- mean(lambda[1:(T-1),1:n.sites])  				# Arithmetic mean for whole time series
+  # ## DERIVED OVERALL POPULATION GROWTH RATE 
+  pop.growth.rate <- mean(lambda[1:(TT-1),1:n.sites])  				# Arithmetic mean for whole time series
   
 })
 
@@ -308,17 +309,15 @@ dat <- list(y = rCH,
 
 #### CONSTANTS ####
 const <- list(f = f,
-              T = n.years,
+              TT = n.years,
               nind = n.ind,
               AGEMAT=AGEMAT,
               n.sites=n.sites)
 
-
-
 inits <- list(
-  ann.fec = dunif(n.years, 0.2, 0.8),
-  imm.rec = dunif(n.years, 0.05, 0.95),
-  skip.prob = dunif(n.years, 0.15, 0.45),
+  ann.fec = runif(n.years, 0.2, 0.8),
+  imm.rec = runif(n.years, 0.05, 0.95),
+  skip.prob = runif(n.years, 0.15, 0.45),
   sigma.surv = runif(1, 0, 10),      
   sigma.capt = runif(1, 0, 10),
   beta = runif(2, 0, 1),
@@ -338,7 +337,8 @@ params <- c("pop.size",
             "ann.surv",
             "beta",
             "lambda",
-            "pop.growth.rate")
+            "pop.growth.rate"
+            )
 
 #### MCMC SETTINGS ####
 nb <- 10000 #burn-in
@@ -352,6 +352,9 @@ Rmodel <- nimbleModel(code = code, constants = const, data = dat,
                        check = FALSE, calculate = FALSE, inits = inits)
 conf <- configureMCMC(Rmodel, monitors = params, thin = nt, 
                        control = list(maxContractions = 1000)) 
+
+#conf$printSamplers(type = "posterior") # check sampler defaults
+
 Rmcmc <- buildMCMC(conf)  
 Cmodel <- compileNimble(Rmodel, showCompilerOutput = FALSE)
 Cmcmc <- compileNimble(Rmcmc, project = Rmodel)

@@ -22,7 +22,8 @@ library(foreach)
 library(doParallel)
 library(beepr)
 source(here("Models", "AEB_prepData.R"))
-source(here("Models", "AEB_ms+Counts.R"))
+#source(here("Models", "AEB_ms+Counts.R"))
+source(here("Models", "AEB_countsOnly.R"))
 source(here("Models", "AEB_nimbleFunctions.R"))
 
 #### MCMC SETTINGS ####
@@ -49,9 +50,9 @@ YNAL.Consts <- list(z.first=z.first,
 zero <- numeric(dim(Y)[1])
 
 # TODO - should these be data or constants
-YNAL.Data <- list(Y=Y,
-                  age=age,
-                  zero = zero,
+YNAL.Data <- list(#Y=Y,
+                  #age=age,
+                  #zero = zero,
                   nF=nF, 
                   nP=nP
 )

@@ -174,17 +174,17 @@ YNAL.IPM <- nimbleCode({
   
   # LIKELIHOOD FOR MS MODEL ######
   
-  for(i in 1:nind){
-    zero[i] ~ dMultiStateHMM(y = Y[i,1:nyear], 
-                             zfirst = z.first[i], 
-                             first = first[i], 
-                             ps = S.t[1:nstates, 1:nstates, 1:(nyear-1), 1:nages],
-                             po = pi[1:nstates, 1:nstates, 1:(nyear-1)],
-                             age = age[i, 1:nyear],
-                             n.occasions = nyear,
-                             nStates = nstates
-    )
-  }
+  # for(i in 1:nind){
+  #   zero[i] ~ dMultiStateHMM(y = Y[i,1:nyear], 
+  #                            zfirst = z.first[i], 
+  #                            first = first[i], 
+  #                            ps = S.t[1:nstates, 1:nstates, 1:(nyear-1), 1:nages],
+  #                            po = pi[1:nstates, 1:nstates, 1:(nyear-1)],
+  #                            age = age[i, 1:nyear],
+  #                            n.occasions = nyear,
+  #                            nStates = nstates
+  #   )
+  # }
   
   ###################################################
   # Likelihood for IPM
